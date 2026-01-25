@@ -1,279 +1,350 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masuk - RayStream</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --glass: rgba(15, 23, 42, 0.75);
-            --border: rgba(255, 255, 255, 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Masuk - RayStream</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 
-        body {
-            font-family: 'Outfit', sans-serif;
-            height: 100vh;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background-color: #000;
-        }
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#6366f1">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-        /* --- BACKGROUND UTAMA (FIXED) --- */
-        .bg-wallpaper {
-            position: absolute; inset: 0;
-            background-image: url('https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ad80bed5dfcf38d740518e4c707fd6e.jpg');
-            background-size: cover;
-            background-position: center;
-            z-index: 0;
-        }
+  <!-- Deterrent (bukan security) -->
+  <script src="/protect.js" defer></script>
+  <script src="/pwa.js" defer></script>
 
-        /* Overlay Hitam Supaya Tulisan Jelas */
-        .bg-overlay {
-            position: absolute; inset: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, #000 100%);
-            backdrop-filter: blur(3px); /* Sedikit blur biar fokus ke tengah */
-            z-index: 1;
-        }
+  <style>
+    :root {
+      --primary: #3b82f6;
+      --glass: rgba(15, 23, 42, 0.75);
+      --border: rgba(255, 255, 255, 0.1);
+    }
 
-        /* --- LOGIN CARD --- */
-        .login-card {
-            position: relative; z-index: 10;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            width: 90%; max-width: 380px;
-            border-radius: 24px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-            animation: floatUp 0.8s ease-out;
-        }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        @keyframes floatUp {
-            from { transform: translateY(40px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+    body {
+      font-family: 'Outfit', sans-serif;
+      height: 100vh;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background-color: #000;
+    }
 
-        /* --- POSTER SHOWCASE (PAMERAN) --- */
-        .poster-showcase {
-            width: 140px; height: 200px;
-            margin: -80px auto 20px auto; /* Naik ke atas card */
-            border-radius: 12px;
-            position: relative;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            border: 4px solid #1e293b;
-            overflow: hidden;
-            background: #000;
-        }
+    .bg-wallpaper {
+      position: absolute; inset: 0;
+      background-image: url('https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ad80bed5dfcf38d740518e4c707fd6e.jpg');
+      background-size: cover;
+      background-position: center;
+      z-index: 0;
+    }
 
-        .poster-slide {
-            position: absolute; inset: 0;
-            background-size: cover; background-position: center;
-            opacity: 0; transition: opacity 1s ease, transform 5s ease;
-            transform: scale(1.1);
-        }
-        .poster-slide.active { opacity: 1; transform: scale(1); }
+    .bg-overlay {
+      position: absolute; inset: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, #000 100%);
+      backdrop-filter: blur(3px);
+      z-index: 1;
+    }
 
-        /* Typography */
-        .app-name {
-            font-size: 1.8rem; font-weight: 800;
-            background: linear-gradient(to right, #60a5fa, #a78bfa);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            margin-bottom: 5px; letter-spacing: -0.5px;
-        }
+    .login-card {
+      position: relative; z-index: 10;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      width: 90%; max-width: 380px;
+      border-radius: 24px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: floatUp 0.8s ease-out;
+    }
 
-        .app-desc {
-            color: #94a3b8; font-size: 0.9rem; line-height: 1.5;
-            margin-bottom: 30px;
-        }
+    @keyframes floatUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
 
-        /* Google Button Wrapper */
-        .btn-wrapper {
-            display: flex; justify-content: center; margin-bottom: 20px;
-            height: 45px; /* Menjaga tinggi agar tidak layout shift */
-        }
+    .poster-showcase {
+      width: 140px; height: 200px;
+      margin: -80px auto 20px auto;
+      border-radius: 12px;
+      position: relative;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      border: 4px solid #1e293b;
+      overflow: hidden;
+      background: #000;
+    }
 
-        /* Privacy */
-        .privacy-btn {
-            color: #64748b; font-size: 0.8rem;
-            cursor: pointer; transition: 0.3s;
-            display: inline-flex; align-items: center; gap: 5px;
-        }
-        .privacy-btn:hover { color: #fff; }
+    .poster-slide {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      opacity: 0; transition: opacity 1s ease, transform 5s ease;
+      transform: scale(1.1);
+    }
+    .poster-slide.active { opacity: 1; transform: scale(1); }
 
-        /* --- MODAL --- */
-        .modal {
-            position: fixed; inset: 0; z-index: 100;
-            background: rgba(0,0,0,0.85);
-            display: none; justify-content: center; align-items: center;
-            padding: 20px; backdrop-filter: blur(5px);
-        }
-        .modal-box {
-            background: #1e293b; color: #cbd5e1;
-            padding: 25px; border-radius: 16px;
-            max-width: 450px; width: 100%;
-            border: 1px solid var(--border);
-            font-size: 0.9rem; line-height: 1.6;
-            animation: zoomIn 0.2s ease;
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; color: white; font-weight: 700; font-size: 1.1rem;
-        }
-        .close-btn { background: none; border: none; color: white; cursor: pointer; }
-        
-        @keyframes zoomIn { from{transform:scale(0.9);opacity:0;} to{transform:scale(1);opacity:1;} }
+    .app-name {
+      font-size: 1.8rem; font-weight: 800;
+      background: linear-gradient(to right, #60a5fa, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 5px; letter-spacing: -0.5px;
+    }
 
-    </style>
+    .app-desc {
+      color: #94a3b8; font-size: 0.9rem; line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .btn-wrapper {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      min-height: 45px;
+      align-items: center;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* Tombol native (untuk WebView APK) */
+    .native-google-btn {
+      width: 100%;
+      height: 46px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(2,6,23,0.75);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      display: none; /* default: hidden, nanti ditampilkan kalau WebView APK */
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .native-google-btn:active {
+      transform: scale(0.99);
+      opacity: 0.95;
+    }
+    .native-google-btn img {
+      width: 18px; height: 18px;
+    }
+
+    .privacy-btn {
+      color: #64748b; font-size: 0.8rem;
+      cursor: pointer; transition: 0.3s;
+      display: inline-flex; align-items: center; gap: 5px;
+    }
+    .privacy-btn:hover { color: #fff; }
+
+    .modal {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.85);
+      display: none; justify-content: center; align-items: center;
+      padding: 20px; backdrop-filter: blur(5px);
+    }
+    .modal-box {
+      background: #1e293b; color: #cbd5e1;
+      padding: 25px; border-radius: 16px;
+      max-width: 450px; width: 100%;
+      border: 1px solid var(--border);
+      font-size: 0.9rem; line-height: 1.6;
+      animation: zoomIn 0.2s ease;
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 15px; color: white; font-weight: 700; font-size: 1.1rem;
+    }
+    .close-btn { background: none; border: none; color: white; cursor: pointer; }
+
+    @keyframes zoomIn {
+      from{transform:scale(0.9);opacity:0;}
+      to{transform:scale(1);opacity:1;}
+    }
+  </style>
 </head>
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.webmanifest">
-    <meta name="theme-color" content="#6366f1">
-    <link rel="apple-touch-icon" href="/icons/icon-192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Deterrent (bukan security) -->
-    <script src="/protect.js" defer></script>
-    <script src="/pwa.js" defer></script>
 <body>
+  <div class="bg-wallpaper"></div>
+  <div class="bg-overlay"></div>
 
-    <div class="bg-wallpaper"></div>
-    <div class="bg-overlay"></div>
+  <div class="login-card">
+    <div class="poster-showcase" id="posterShowcase"></div>
 
-    <div class="login-card">
-        
-        <div class="poster-showcase" id="posterShowcase">
-            </div>
+    <h1 class="app-name">RAYSTREAM</h1>
+    <p class="app-desc">
+      Platform streaming Anime & Donghua terlengkap.<br>
+      Masuk untuk sinkronisasi history.
+    </p>
 
-        <h1 class="app-name">RAYSTREAM</h1>
-        <p class="app-desc">
-            Platform streaming Anime & Donghua terlengkap.<br>
-            Masuk untuk sinkronisasi history.
-        </p>
+    <div class="btn-wrapper">
+      <!-- Tombol native (WebView APK) -->
+      <button id="nativeGoogleBtn" class="native-google-btn" type="button" onclick="nativeLoginGoogle()">
+        <img alt="G" src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg">
+        Login dengan Google
+      </button>
 
-        <div class="btn-wrapper">
-            <div id="g_id_onload"
-                 data-client_id="879575887567-dpebn221ucih4hs73lu8mbbl528lb89o.apps.googleusercontent.com"
-                 data-callback="handleCredentialResponse"
-                 data-auto_prompt="false">
-            </div>
-            <div class="g_id_signin" 
-                 data-type="standard" 
-                 data-size="large" 
-                 data-theme="filled_black" 
-                 data-shape="pill"
-                 data-text="continue_with">
-            </div>
-        </div>
+      <!-- Container GSI (Browser/PWA) -->
+      <div id="gsiWrap" style="display:none; width:100%; display:flex; justify-content:center;">
+        <div id="g_id_onload"
+             data-client_id="879575887567-dpebn221ucih4hs73lu8mbbl528lb89o.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false"></div>
 
-        <div class="privacy-btn" onclick="openPrivacy()">
-            <i data-lucide="shield" size="14"></i> Kebijakan Privasi
-        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-size="large"
+             data-theme="filled_black"
+             data-shape="pill"
+             data-text="continue_with"></div>
+      </div>
     </div>
 
-    <div id="privacyModal" class="modal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <span><i data-lucide="lock" size="18" style="margin-right:5px; color:#3b82f6;"></i> Keamanan Data</span>
-                <button class="close-btn" onclick="closePrivacy()"><i data-lucide="x"></i></button>
-            </div>
-            <p><strong>RayStream menghargai privasi Anda.</strong></p>
-            <ul style="margin: 10px 0 10px 20px; color:#94a3b8;">
-                <li>Login Google digunakan hanya untuk menyimpan <strong>Riwayat Tontonan (History)</strong> Anda.</li>
-                <li>Data disimpan secara aman di Cloud Storage pribadi Anda.</li>
-                <li>Aplikasi tidak meminta izin posting atau akses kontak.</li>
-            </ul>
-            <button onclick="closePrivacy()" style="width:100%; background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer; margin-top:10px;">Saya Mengerti</button>
-        </div>
+    <div class="privacy-btn" onclick="openPrivacy()">
+      <i data-lucide="shield" size="14"></i> Kebijakan Privasi
     </div>
+  </div>
 
-    <script>
-        // --- 1. CONFIG PAMERAN THUMBNAIL ---
-        const posters = [
-            "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/aaa45c4b879776854d7f142d2e66f686.jpg",
-            "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/a7256de61853ff8778e17922d990cc08.jpg",
-            "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ed136f553382bb508f0c9fa0937d26b%20(1).jpg",
-            "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/a3c2f13061a16f7cd7e252094e7f18af.jpg",
-            " https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ad80bed5dfcf38d740518e4c707fd6e.jpg"
-            
-        ];
+  <div id="privacyModal" class="modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span><i data-lucide="lock" size="18" style="margin-right:5px; color:#3b82f6;"></i> Keamanan Data</span>
+        <button class="close-btn" onclick="closePrivacy()"><i data-lucide="x"></i></button>
+      </div>
+      <p><strong>RayStream menghargai privasi Anda.</strong></p>
+      <ul style="margin: 10px 0 10px 20px; color:#94a3b8;">
+        <li>Login Google digunakan hanya untuk menyimpan <strong>Riwayat Tontonan (History)</strong> Anda.</li>
+        <li>Data disimpan secara aman di Cloud Storage pribadi Anda.</li>
+        <li>Aplikasi tidak meminta izin posting atau akses kontak.</li>
+      </ul>
+      <button onclick="closePrivacy()"
+              style="width:100%; background:#3b82f6; color:white; border:none; padding:10px; border-radius:8px; font-weight:600; cursor:pointer; margin-top:10px;">
+        Saya Mengerti
+      </button>
+    </div>
+  </div>
 
-        function startShowcase() {
-            const container = document.getElementById('posterShowcase');
-            
-            // Render elemen gambar
-            posters.forEach((url, index) => {
-                const div = document.createElement('div');
-                div.className = `poster-slide ${index === 0 ? 'active' : ''}`;
-                div.style.backgroundImage = `url('${url}')`;
-                container.appendChild(div);
-            });
+  <script>
+    // ====== 0) DETEKSI: APK WebView vs Browser ======
+    function isApkWebView() {
+      // Cara paling reliable untuk project kamu: bridge AndroidAuth ada
+      return !!(window.AndroidAuth && typeof window.AndroidAuth.loginGoogle === 'function');
+    }
 
-            // Logic Ganti Gambar Otomatis
-            let current = 0;
-            const slides = document.querySelectorAll('.poster-slide');
-            
-            setInterval(() => {
-                slides[current].classList.remove('active');
-                current = (current + 1) % slides.length;
-                slides[current].classList.add('active');
-            }, 2500); // Ganti tiap 4 detik
-        }
+    // ====== 1) PAMERAN THUMBNAIL ======
+    const posters = [
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/aaa45c4b879776854d7f142d2e66f686.jpg",
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/a7256de61853ff8778e17922d990cc08.jpg",
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ed136f553382bb508f0c9fa0937d26b%20(1).jpg",
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/a3c2f13061a16f7cd7e252094e7f18af.jpg",
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/a3c2f13061a16f7cd7e252094e7f18af.jpg",
+      "https://raw.githubusercontent.com/rayyganteng2010-cell/ice-gpt/refs/heads/main/3ad80bed5dfcf38d740518e4c707fd6e.jpg"
+    ];
 
-        // --- 2. LOGIC LOGIN ---
-        function handleCredentialResponse(response) {
-            try {
-                const userPayload = decodeJwt(response.credential);
-                
-                // Simpan Data User
-                localStorage.setItem('user_info', JSON.stringify(userPayload));
-                localStorage.setItem('auth_token', response.credential);
-                
-                // Animasi Loading
-                document.querySelector('.login-card').style.transform = "scale(0.95)";
-                document.querySelector('.login-card').style.opacity = "0.7";
-                
-                // Redirect
-                setTimeout(() => {
-                    window.location.href = "index.html";
-                }, 800);
+    function startShowcase() {
+      const container = document.getElementById('posterShowcase');
+      posters.forEach((url, index) => {
+        const div = document.createElement('div');
+        div.className = `poster-slide ${index === 0 ? 'active' : ''}`;
+        div.style.backgroundImage = `url('${url.trim()}')`;
+        container.appendChild(div);
+      });
 
-            } catch (e) {
-                console.error(e);
-                alert("Gagal Login.");
-            }
-        }
+      let current = 0;
+      const slides = document.querySelectorAll('.poster-slide');
+      setInterval(() => {
+        slides[current].classList.remove('active');
+        current = (current + 1) % slides.length;
+        slides[current].classList.add('active');
+      }, 2500);
+    }
 
-        // Fungsi Decode Token Google
-        function decodeJwt(token) {
-            var base64Url = token.split('.')[1];
-            var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
-            return JSON.parse(jsonPayload);
-        }
+    // ====== 2) LOGIN LOGIC (dipakai GSI maupun native) ======
+    function handleCredentialResponse(response) {
+      try {
+        const userPayload = decodeJwt(response.credential);
 
-        // --- 3. MODAL LOGIC ---
-        function openPrivacy() { document.getElementById('privacyModal').style.display = 'flex'; }
-        function closePrivacy() { document.getElementById('privacyModal').style.display = 'none'; }
+        localStorage.setItem('user_info', JSON.stringify(userPayload));
+        localStorage.setItem('auth_token', response.credential);
 
-        // START
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            startShowcase();
-        });
-    </script>
+        document.querySelector('.login-card').style.transform = "scale(0.95)";
+        document.querySelector('.login-card').style.opacity = "0.7";
+
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 800);
+
+      } catch (e) {
+        console.error(e);
+        alert("Gagal Login.");
+      }
+    }
+
+    function decodeJwt(token) {
+      var base64Url = token.split('.')[1];
+      var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    }
+
+    // ====== 3) BRIDGE UNTUK APK: dipanggil dari Kotlin (evaluateJavascript) ======
+    // Kotlin: window.__nativeGoogleLogin('<ID_TOKEN>')
+    window.__nativeGoogleLogin = function(idToken) {
+      handleCredentialResponse({ credential: idToken });
+    };
+
+    function nativeLoginGoogle() {
+      try {
+        window.AndroidAuth.loginGoogle();
+      } catch (e) {
+        alert("Bridge AndroidAuth tidak tersedia.");
+      }
+    }
+
+    // ====== 4) MODAL ======
+    function openPrivacy() { document.getElementById('privacyModal').style.display = 'flex'; }
+    function closePrivacy() { document.getElementById('privacyModal').style.display = 'none'; }
+
+    // ====== 5) INIT AUTH UI ======
+    function loadGsiScriptAndShowButton() {
+      // load script GSI hanya untuk browser/PWA
+      const script = document.createElement('script');
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        document.getElementById('gsiWrap').style.display = 'flex';
+      };
+      script.onerror = () => {
+        // fallback: kasih pesan kalau GSI gagal load
+        document.getElementById('gsiWrap').style.display = 'none';
+        alert("Gagal memuat Google Sign-In. Cek koneksi / DNS.");
+      };
+      document.head.appendChild(script);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      startShowcase();
+
+      if (isApkWebView()) {
+        // APK: tampilkan tombol native
+        document.getElementById('nativeGoogleBtn').style.display = 'flex';
+        document.getElementById('gsiWrap').style.display = 'none';
+      } else {
+        // Browser/PWA: pakai GSI
+        document.getElementById('nativeGoogleBtn').style.display = 'none';
+        loadGsiScriptAndShowButton();
+      }
+    });
+  </script>
 </body>
 </html>
