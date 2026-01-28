@@ -16,6 +16,7 @@
       --text-main: #ffffff;
       --text-muted: #a1a1aa;
       --wa-color: #25D366;
+      --surface: #1e1e22;
     }
 
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; font-family: 'Outfit', sans-serif; }
@@ -70,7 +71,6 @@
       z-index: 10; 
     }
 
-    /* Tombol Force Fullscreen */
     .fs-btn-overlay {
         position: absolute; bottom: 10px; right: 10px;
         background: rgba(0,0,0,0.6); color: white;
@@ -89,6 +89,7 @@
       z-index: 45; 
       margin-top: 0; 
       border-top: 1px solid rgba(255,255,255,0.05);
+      min-height: 400px;
     }
 
     .ep-title {
@@ -111,7 +112,7 @@
       display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;
     }
     .btn-nav {
-      background: #1f1f22; color: #fff; border: 1px solid rgba(255,255,255,0.05);
+      background: var(--surface); color: #fff; border: 1px solid rgba(255,255,255,0.05);
       padding: 12px; border-radius: 12px; font-weight: 600; cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
@@ -126,34 +127,90 @@
       box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2);
     }
 
-    /* Server List Box */
-    .server-box {
-      background: #1f1f22; border-radius: 16px; padding: 15px; margin-bottom: 20px;
-      border: 1px solid rgba(255,255,255,0.05);
+    /* --- NEW SERVER BUTTON (TRIGGER) --- */
+    .server-trigger-btn {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 15px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: 0.2s;
     }
-    .server-label {
-        font-size: 0.7rem; color: var(--text-muted); margin-bottom: 10px;
-        display: flex; justify-content: space-between;
+    .server-trigger-btn:active { background: #2a2a30; }
+    
+    .st-left { display: flex; flex-direction: column; gap: 4px; }
+    .st-label { font-size: 0.7rem; color: var(--text-muted); }
+    .st-value { font-weight: 700; color: var(--primary); text-transform: uppercase; }
+    .anime-mode .st-value { color: var(--anime-color); }
+
+    /* --- SERVER MODAL (BOTTOM SHEET) --- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      backdrop-filter: blur(2px);
     }
-    .server-grid {
-        display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px;
-    }
-    .btn-srv {
-        background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
-        padding: 8px; border-radius: 8px; color: #ccc;
-        font-size: 0.75rem; font-weight: 600; cursor: pointer; text-align: center;
-        text-transform: uppercase;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .btn-srv.active {
-        background: var(--primary); color: #fff; border-color: var(--primary);
-    }
-    /* Warna khusus Anime */
-    .anime-mode .btn-srv.active {
-        background: var(--anime-color); color: #000; border-color: var(--anime-color);
+    .modal-overlay.active { display: flex; animation: fadeIn 0.2s; }
+
+    .modal-content {
+      background: #18181b;
+      width: 100%;
+      max-height: 70vh;
+      border-radius: 24px 24px 0 0;
+      padding: 20px;
+      overflow-y: auto;
+      animation: slideUp 0.3s;
+      border-top: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* Download List (Hanya untuk Donghua) */
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 20px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .modal-title { font-size: 1.1rem; font-weight: 700; }
+    
+    .srv-group { margin-bottom: 15px; }
+    .srv-group-title { 
+      font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; 
+      padding-left: 5px; border-left: 3px solid var(--primary);
+    }
+    .anime-mode .srv-group-title { border-color: var(--anime-color); }
+
+    .srv-list-modern {
+      display: grid; grid-template-columns: 1fr; gap: 8px;
+    }
+    
+    .btn-srv-modern {
+      background: rgba(255,255,255,0.05);
+      padding: 12px 15px;
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      text-align: left;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .btn-srv-modern:hover { background: rgba(255,255,255,0.1); }
+    .btn-srv-modern.active {
+      background: rgba(99, 102, 241, 0.15);
+      border-color: var(--primary);
+      color: var(--primary);
+      font-weight: 700;
+    }
+    .anime-mode .btn-srv-modern.active {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--anime-color);
+      color: var(--anime-color);
+    }
+
+    /* Download List */
     .dl-section { display: none; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
     .dl-item { background: #18181b; padding: 10px; border-radius: 8px; margin-bottom: 5px; }
     .dl-res { font-size: 0.75rem; font-weight: 700; color:#fff; margin-bottom:5px; }
@@ -162,14 +219,16 @@
         color: #fff; font-size: 0.7rem; border-radius: 4px; text-decoration: none; margin-right: 5px; margin-bottom: 5px;
     }
 
-    /* Toast */
     #toast {
       position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
       background: #333; padding: 10px 20px; border-radius: 30px; color: #fff;
-      font-size: 0.8rem; z-index: 100; opacity: 0; transition: 0.3s; pointer-events: none;
+      font-size: 0.8rem; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none;
       white-space: nowrap; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -197,7 +256,7 @@
     <div class="ep-title" id="epTitle">Memuat...</div>
     <div class="ep-meta">
         <span class="badge badge-src" id="srcBadge">SOURCE</span>
-        <span id="dateInfo">Updated Today</span>
+        <span id="dateInfo">Loading...</span>
     </div>
 
     <div class="nav-row">
@@ -209,13 +268,12 @@
         </button>
     </div>
 
-    <div class="server-box">
-        <div class="server-label">
-            <span>PILIH SERVER</span>
-            <span id="currentServer" style="color:var(--text-main); font-weight:700">AUTO</span>
+    <div class="server-trigger-btn" onclick="openServerModal()">
+        <div class="st-left">
+            <span class="st-label">SERVER STREAMING</span>
+            <span class="st-value" id="currentServerName">DEFAULT (AUTO)</span>
         </div>
-        <div class="server-grid" id="serverGrid">
-            </div>
+        <i data-lucide="chevron-up" width="20" style="color:var(--text-muted)"></i>
     </div>
 
     <a href="https://whatsapp.com/channel/0029Vb6kx8FFi8xZBhjm2g0m" target="_blank" class="btn-wa">
@@ -231,7 +289,18 @@
     <div class="dl-section" id="dlSection">
         <div id="dlContainer"></div>
     </div>
+</div>
 
+<div class="modal-overlay" id="serverModal" onclick="closeServerModal(event)">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">Pilih Resolusi & Server</div>
+            <i data-lucide="x" width="24" onclick="closeServerModal(null)" style="cursor:pointer"></i>
+        </div>
+        <div id="serverListContainer">
+            <p style="text-align:center; color:#666">Memuat server...</p>
+        </div>
+    </div>
 </div>
 
 <div id="toast">Notifikasi</div>
@@ -241,10 +310,9 @@
     // CONFIG & APIs
     // ===================================
     const API_DONGHUA = "https://anichin-seven.vercel.app/api";
-    // API Anime Baru sesuai request
-    const API_ANIME   = "https://donghua-qnha.vercel.app/anime/samehadaku"; 
+    const API_ANIME   = "https://www.sankavollerei.com/anime/samehadaku"; 
 
-    // Helper Proxy
+    // Proxy Helper
     async function smartFetch(url) {
         const proxies = [
             (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
@@ -269,7 +337,7 @@
     }
 
     // ===================================
-    // MAIN
+    // INITIALIZATION
     // ===================================
     document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
@@ -297,97 +365,141 @@
     }
 
     // ===================================
-    // LOGIC ANIME (NEW API STRUCTURE)
+    // LOGIC ANIME (Sanka Vollerei API)
     // ===================================
     async function loadAnime(id) {
         try {
-            // Bersihin ID dari URL penuh kalau ada
             const cleanID = id.replace(/\/$/, '').split('/').pop();
             const json = await smartFetch(`${API_ANIME}/episode/${cleanID}`);
             const data = json.data;
 
             if (!data) throw new Error("Data Episode tidak ditemukan");
 
-            // 1. Title & Meta
+            // 1. Info Utama
             document.getElementById('epTitle').innerText = data.title;
             document.getElementById('headerTitle').innerText = data.title;
-            document.getElementById('dateInfo').innerText = "Anime Samehadaku";
+            document.getElementById('dateInfo').innerText = data.releasedOn || "Anime";
 
-            // 2. Servers (Dari Downloads)
-            // User bilang: "itu bukan link download ya,tapi link nonton"
-            // Struktur: downloads -> qualities -> urls
-            const servers = [];
-            
-            if (data.downloads && Array.isArray(data.downloads)) {
-                data.downloads.forEach(ext => { // e.g., MKV
-                    if(ext.qualities) {
-                        ext.qualities.forEach(q => { // e.g., 360p
-                            if(q.urls) {
-                                q.urls.forEach(u => { // e.g., Gofile
-                                    // Buat nama server gabungan
-                                    servers.push({
-                                        name: `${u.title} ${q.title}`, // GOFILE 360P
-                                        url: u.url
-                                    });
-                                });
-                            }
-                        });
-                    }
-                });
+            // 2. Play Default Stream (Blogger/Default)
+            if (data.defaultStreamingUrl) {
+                playVideo(data.defaultStreamingUrl, "DEFAULT");
             }
 
-            // Play Default (Server Pertama)
-            if (servers.length > 0) {
-                playVideo(servers[0].url, servers[0].name);
-            } else {
-                showToast("Tidak ada server tersedia");
-            }
+            // 3. Render Server List (Grouped by Quality)
+            // Struktur: data.server.qualities -> [{title: "360p", serverList: [...]}]
+            renderAnimeServers(data.server?.qualities || []);
 
-            renderServers(servers);
-
-            // 3. Navigation
-            const nav = data.navigation;
+            // 4. Navigation
             const prevBtn = document.getElementById('btnPrev');
             const nextBtn = document.getElementById('btnNext');
 
-            if (nav && nav.prev) { // Cek struktur API, biasanya string url/slug
-                 prevBtn.disabled = false;
-                 // Parse ID dari URL prev
-                 const prevId = nav.prev.replace(/\/$/, '').split('/').pop();
-                 prevBtn.onclick = () => window.location.href = `stream.html?id=${prevId}&source=anime`;
+            if (data.hasPrevEpisode) {
+                prevBtn.disabled = false;
+                prevBtn.onclick = () => window.location.href = `stream.html?id=${data.prevEpisode.episodeId}&source=anime`;
             }
-            // Note: API responsemmu prev/next nya null, jadi tombol bakal disabled kalau null.
+            if (data.hasNextEpisode) {
+                nextBtn.disabled = false;
+                nextBtn.onclick = () => window.location.href = `stream.html?id=${data.nextEpisode.episodeId}&source=anime`;
+            }
+
+            // 5. Download List
+            if(data.downloadUrl && data.downloadUrl.formats) {
+                document.getElementById('dlToggleArea').style.display = 'block';
+                renderAnimeDownloads(data.downloadUrl);
+            }
 
             saveHistory(data.title, cleanID, 'anime');
 
         } catch (e) {
             console.error(e);
             document.getElementById('epTitle').innerText = "Error: " + e.message;
+            showToast("Gagal memuat data anime");
+        }
+    }
+
+    // Render Server untuk Anime (Inside Modal)
+    function renderAnimeServers(qualities) {
+        const container = document.getElementById('serverListContainer');
+        container.innerHTML = ""; // Clear
+
+        if(!qualities || qualities.length === 0) {
+            container.innerHTML = "<p>Tidak ada server alternatif.</p>";
+            return;
+        }
+
+        qualities.forEach(q => {
+            const res = q.title; // 360p, 480p, dll
+            if(q.serverList && q.serverList.length > 0) {
+                // Buat Header Group
+                const group = document.createElement('div');
+                group.className = "srv-group";
+                group.innerHTML = `<div class="srv-group-title">${res.toUpperCase()}</div>`;
+                
+                const list = document.createElement('div');
+                list.className = "srv-list-modern";
+
+                q.serverList.forEach(srv => {
+                    const btn = document.createElement('div');
+                    btn.className = "btn-srv-modern";
+                    btn.innerHTML = `<span>${srv.title}</span> <i data-lucide="play-circle" width="16"></i>`;
+                    
+                    btn.onclick = () => {
+                        // Action play server id
+                        fetchAnimeServer(srv.serverId, `${srv.title} (${res})`);
+                        // Close modal & set active state
+                        closeServerModal(null);
+                        document.querySelectorAll('.btn-srv-modern').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                    list.appendChild(btn);
+                });
+
+                group.appendChild(list);
+                container.appendChild(group);
+            }
+        });
+        lucide.createIcons();
+    }
+
+    async function fetchAnimeServer(serverId, name) {
+        showToast("Memuat Server...");
+        try {
+            // Fetch URL asli dari Server ID
+            const json = await smartFetch(`${API_ANIME}/server/${serverId}`);
+            const url = json.data?.url || json.url; 
+            
+            if (url) {
+                playVideo(url, name);
+            } else {
+                showToast("Server rusak / tidak tersedia");
+            }
+        } catch (e) {
+            showToast("Gagal koneksi ke server");
         }
     }
 
     // ===================================
-    // LOGIC DONGHUA (OLD API)
+    // LOGIC DONGHUA (Legacy)
     // ===================================
     async function loadDonghua(url) {
         try {
             const res = await fetch(`${API_DONGHUA}/detail?url=${encodeURIComponent(url)}`);
             const json = await res.json();
             
-            if (!json || !json.streaming) throw new Error("Data Donghua Error");
+            if (!json || !json.streaming) throw new Error("Data Error");
 
             document.getElementById('epTitle').innerText = json.episode;
             document.getElementById('headerTitle').innerText = json.episode;
             
+            // Play Default
             const servers = json.streaming.servers || [];
             let defaultSrv = servers.find(s => s.name.toLowerCase().includes('premium')) || servers[0];
-            
             if (defaultSrv) playVideo(defaultSrv.url, defaultSrv.name);
 
-            const mappedServers = servers.map(s => ({ name: s.name, url: s.url }));
-            renderServers(mappedServers);
+            // Render Server List Donghua
+            renderDonghuaServers(servers);
 
-            // Nav
+            // Navigation
             const nav = json.navigation;
             const prev = document.getElementById('btnPrev');
             const next = document.getElementById('btnNext');
@@ -400,7 +512,6 @@
                 next.onclick = () => window.location.href = `stream.html?url=${encodeURIComponent(nav.next_episode.anichinUrl)}&source=donghua`;
             }
 
-            // Download Section khusus Donghua
             if(json.download_url) {
                 document.getElementById('dlToggleArea').style.display = 'block';
                 renderDonghuaDownloads(json.download_url);
@@ -409,9 +520,38 @@
             saveHistory(json.episode, url, 'donghua');
 
         } catch (e) {
-            console.error(e);
             document.getElementById('epTitle').innerText = "Error: " + e.message;
         }
+    }
+
+    function renderDonghuaServers(servers) {
+        const container = document.getElementById('serverListContainer');
+        container.innerHTML = "";
+        
+        const group = document.createElement('div');
+        group.className = "srv-group";
+        group.innerHTML = `<div class="srv-group-title">AVAILABLE SERVERS</div>`;
+        
+        const list = document.createElement('div');
+        list.className = "srv-list-modern";
+
+        servers.forEach(srv => {
+            const btn = document.createElement('div');
+            btn.className = "btn-srv-modern";
+            btn.innerHTML = `<span>${srv.name}</span> <i data-lucide="play-circle" width="16"></i>`;
+            
+            btn.onclick = () => {
+                playVideo(srv.url, srv.name);
+                closeServerModal(null);
+                document.querySelectorAll('.btn-srv-modern').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+            list.appendChild(btn);
+        });
+
+        group.appendChild(list);
+        container.appendChild(group);
+        lucide.createIcons();
     }
 
     // ===================================
@@ -422,29 +562,40 @@
         iframe.src = 'about:blank';
         setTimeout(() => { iframe.src = url; }, 50);
         
-        document.getElementById('currentServer').innerText = cleanName(name);
-        showToast("Playing: " + cleanName(name));
+        document.getElementById('currentServerName').innerText = name.toUpperCase();
+        showToast("Memutar: " + name);
     }
 
-    function renderServers(list) {
-        const grid = document.getElementById('serverGrid');
-        grid.innerHTML = "";
+    // Modal Logic
+    function openServerModal() {
+        document.getElementById('serverModal').classList.add('active');
+    }
 
-        list.forEach(srv => {
-            const btn = document.createElement('div');
-            const cName = cleanName(srv.name);
-            btn.className = 'btn-srv';
-            btn.innerText = cName;
-            
-            btn.onclick = () => {
-                document.querySelectorAll('.btn-srv').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                playVideo(srv.url, srv.name);
-            };
-            grid.appendChild(btn);
+    function closeServerModal(e) {
+        if(e && e.target !== e.currentTarget) return; // Klik inside modal dont close
+        document.getElementById('serverModal').classList.remove('active');
+    }
+
+    // Downloads Anime
+    function renderAnimeDownloads(data) {
+        const box = document.getElementById('dlContainer');
+        if (!data || !data.formats) return;
+        let html = "";
+        data.formats.forEach(f => {
+            html += `<div class="dl-item"><div class="dl-res">${f.title}</div><div class="dl-links">`;
+            if (f.qualities) {
+                f.qualities.forEach(q => {
+                    (q.urls || []).forEach(u => {
+                        html += `<a href="${u.url}" target="_blank">${q.title} (${u.title})</a>`;
+                    });
+                });
+            }
+            html += `</div></div>`;
         });
+        box.innerHTML = html;
     }
 
+    // Downloads Donghua
     function renderDonghuaDownloads(urls) {
         const box = document.getElementById('dlContainer');
         let html = "";
@@ -466,10 +617,6 @@
         else if (elem.msRequestFullscreen) { elem.msRequestFullscreen(); }
     }
 
-    function cleanName(str) {
-        return str.replace(/\[.*?\]/g, '').replace(/[^a-zA-Z0-9\(\) ]/g, '').trim().toUpperCase();
-    }
-
     function toggleDl() {
         const el = document.getElementById('dlSection');
         el.style.display = (el.style.display === 'block') ? 'none' : 'block';
@@ -488,6 +635,7 @@
         hist.unshift({ title, url, source: src, date: new Date().toLocaleDateString() });
         localStorage.setItem('my_history', JSON.stringify(hist.slice(0, 20)));
     }
+
 </script>
 </body>
 </html>
