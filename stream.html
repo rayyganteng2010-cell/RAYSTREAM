@@ -127,7 +127,7 @@
       box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2);
     }
 
-    /* --- NEW SERVER BUTTON (TRIGGER) --- */
+    /* --- SERVER TRIGGER BTN --- */
     .server-trigger-btn {
       width: 100%;
       background: var(--surface);
@@ -146,7 +146,7 @@
     .st-value { font-weight: 700; color: var(--primary); text-transform: uppercase; }
     .anime-mode .st-value { color: var(--anime-color); }
 
-    /* --- SERVER MODAL (BOTTOM SHEET) --- */
+    /* --- SERVER MODAL --- */
     .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0,0,0,0.7);
@@ -242,6 +242,8 @@
 
 <div class="player-container">
     <iframe id="iframePlayer" class="player-frame" src="" 
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"
+        referrerpolicy="no-referrer"
         allowfullscreen="true" 
         allow="autoplay; fullscreen; encrypted-media; picture-in-picture">
     </iframe>
@@ -271,7 +273,7 @@
     <div class="server-trigger-btn" onclick="openServerModal()">
         <div class="st-left">
             <span class="st-label">SERVER STREAMING</span>
-            <span class="st-value" id="currentServerName">DEFAULT (AUTO)</span>
+            <span class="st-value" id="currentServerName">AUTO PILIH</span>
         </div>
         <i data-lucide="chevron-up" width="20" style="color:var(--text-muted)"></i>
     </div>
@@ -294,7 +296,7 @@
 <div class="modal-overlay" id="serverModal" onclick="closeServerModal(event)">
     <div class="modal-content">
         <div class="modal-header">
-            <div class="modal-title">Pilih Resolusi & Server</div>
+            <div class="modal-title">Pilih Server / Resolusi</div>
             <i data-lucide="x" width="24" onclick="closeServerModal(null)" style="cursor:pointer"></i>
         </div>
         <div id="serverListContainer">
@@ -307,12 +309,12 @@
 
 <script>
     // ===================================
-    // CONFIG & APIs
+    // CONFIG
     // ===================================
     const API_DONGHUA = "https://anichin-seven.vercel.app/api";
     const API_ANIME   = "https://www.sankavollerei.com/anime/samehadaku"; 
 
-    // Proxy Helper
+    // Helper Proxy
     async function smartFetch(url) {
         const proxies = [
             (u) => `https://corsproxy.io/?${encodeURIComponent(u)}`,
@@ -325,7 +327,6 @@
         throw new Error("Gagal mengambil data (CORS/Network)");
     }
 
-    // Params
     const urlParams = new URLSearchParams(window.location.search);
     const donghuaUrl = urlParams.get('url');
     const animeId = urlParams.get('id'); 
@@ -337,7 +338,7 @@
     }
 
     // ===================================
-    // INITIALIZATION
+    // MAIN LOAD
     // ===================================
     document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
@@ -365,7 +366,7 @@
     }
 
     // ===================================
-    // LOGIC ANIME (Sanka Vollerei API)
+    // LOGIC ANIME
     // ===================================
     async function loadAnime(id) {
         try {
@@ -375,34 +376,86 @@
 
             if (!data) throw new Error("Data Episode tidak ditemukan");
 
-            // 1. Info Utama
+            // Info
             document.getElementById('epTitle').innerText = data.title;
             document.getElementById('headerTitle').innerText = data.title;
             document.getElementById('dateInfo').innerText = data.releasedOn || "Anime";
 
-            // 2. Play Default Stream (Blogger/Default)
+            // Server Logic (From Download List -> Streaming)
+            const servers = [];
+            // Prioritas Resolusi: 720p -> 480p -> 1080p -> 360p
+            const priority = ['720p', '480p', '1080p', '360p'];
+
+            // Kita struktur ulang data biar enak di render di modal
+            // Format: { "720p": [ {name: "Gofile", url: "..."} ] }
+            const groupedServers = {};
+
+            if (data.downloads && Array.isArray(data.downloads)) {
+                data.downloads.forEach(ext => {
+                    if(ext.qualities) {
+                        ext.qualities.forEach(q => {
+                            const res = q.title.trim();
+                            if(!groupedServers[res]) groupedServers[res] = [];
+
+                            if(q.urls) {
+                                q.urls.forEach(u => {
+                                    groupedServers[res].push({
+                                        name: u.title,
+                                        url: u.url
+                                    });
+                                    
+                                    // Masukin ke flat list buat auto play
+                                    servers.push({
+                                        res: res,
+                                        name: u.title,
+                                        url: u.url
+                                    });
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // Auto Play Logic: Cari stream URL default atau yang pertama dari list
             if (data.defaultStreamingUrl) {
-                playVideo(data.defaultStreamingUrl, "DEFAULT");
+                playVideo(data.defaultStreamingUrl, "DEFAULT STREAM");
+            } else if (servers.length > 0) {
+                // Cari resolusi terbaik yang ada
+                let best = servers[0];
+                for(let p of priority) {
+                    const found = servers.find(s => s.res.includes(p));
+                    if(found) { best = found; break; }
+                }
+                playVideo(best.url, `${best.name} ${best.res}`);
+            } else {
+                showToast("Tidak ada server tersedia");
             }
 
-            // 3. Render Server List (Grouped by Quality)
-            // Struktur: data.server.qualities -> [{title: "360p", serverList: [...]}]
-            renderAnimeServers(data.server?.qualities || []);
+            // Render Server Modal
+            renderGroupedServers(groupedServers);
 
-            // 4. Navigation
-            const prevBtn = document.getElementById('btnPrev');
-            const nextBtn = document.getElementById('btnNext');
-
-            if (data.hasPrevEpisode) {
-                prevBtn.disabled = false;
-                prevBtn.onclick = () => window.location.href = `stream.html?id=${data.prevEpisode.episodeId}&source=anime`;
+            // Nav
+            const nav = data.navigation;
+            if (nav && nav.prev) {
+                const prevId = nav.prev.replace(/\/$/, '').split('/').pop(); // Extract ID
+                const btn = document.getElementById('btnPrev');
+                btn.disabled = false;
+                btn.onclick = () => window.location.href = `stream.html?id=${prevId}&source=anime`;
             }
-            if (data.hasNextEpisode) {
-                nextBtn.disabled = false;
-                nextBtn.onclick = () => window.location.href = `stream.html?id=${data.nextEpisode.episodeId}&source=anime`;
+             // Samehadaku API prev/next kadang null, handle manual kalau ada href
+            if(data.prevEpisode) {
+                const btn = document.getElementById('btnPrev');
+                btn.disabled = false;
+                btn.onclick = () => window.location.href = `stream.html?id=${data.prevEpisode.episodeId}&source=anime`;
+            }
+            if(data.nextEpisode) {
+                const btn = document.getElementById('btnNext');
+                btn.disabled = false;
+                btn.onclick = () => window.location.href = `stream.html?id=${data.nextEpisode.episodeId}&source=anime`;
             }
 
-            // 5. Download List
+            // Downloads (Kalau ada list terpisah, render)
             if(data.downloadUrl && data.downloadUrl.formats) {
                 document.getElementById('dlToggleArea').style.display = 'block';
                 renderAnimeDownloads(data.downloadUrl);
@@ -413,73 +466,12 @@
         } catch (e) {
             console.error(e);
             document.getElementById('epTitle').innerText = "Error: " + e.message;
-            showToast("Gagal memuat data anime");
-        }
-    }
-
-    // Render Server untuk Anime (Inside Modal)
-    function renderAnimeServers(qualities) {
-        const container = document.getElementById('serverListContainer');
-        container.innerHTML = ""; // Clear
-
-        if(!qualities || qualities.length === 0) {
-            container.innerHTML = "<p>Tidak ada server alternatif.</p>";
-            return;
-        }
-
-        qualities.forEach(q => {
-            const res = q.title; // 360p, 480p, dll
-            if(q.serverList && q.serverList.length > 0) {
-                // Buat Header Group
-                const group = document.createElement('div');
-                group.className = "srv-group";
-                group.innerHTML = `<div class="srv-group-title">${res.toUpperCase()}</div>`;
-                
-                const list = document.createElement('div');
-                list.className = "srv-list-modern";
-
-                q.serverList.forEach(srv => {
-                    const btn = document.createElement('div');
-                    btn.className = "btn-srv-modern";
-                    btn.innerHTML = `<span>${srv.title}</span> <i data-lucide="play-circle" width="16"></i>`;
-                    
-                    btn.onclick = () => {
-                        // Action play server id
-                        fetchAnimeServer(srv.serverId, `${srv.title} (${res})`);
-                        // Close modal & set active state
-                        closeServerModal(null);
-                        document.querySelectorAll('.btn-srv-modern').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
-                    };
-                    list.appendChild(btn);
-                });
-
-                group.appendChild(list);
-                container.appendChild(group);
-            }
-        });
-        lucide.createIcons();
-    }
-
-    async function fetchAnimeServer(serverId, name) {
-        showToast("Memuat Server...");
-        try {
-            // Fetch URL asli dari Server ID
-            const json = await smartFetch(`${API_ANIME}/server/${serverId}`);
-            const url = json.data?.url || json.url; 
-            
-            if (url) {
-                playVideo(url, name);
-            } else {
-                showToast("Server rusak / tidak tersedia");
-            }
-        } catch (e) {
-            showToast("Gagal koneksi ke server");
+            showToast("Gagal memuat anime");
         }
     }
 
     // ===================================
-    // LOGIC DONGHUA (Legacy)
+    // LOGIC DONGHUA
     // ===================================
     async function loadDonghua(url) {
         try {
@@ -491,15 +483,21 @@
             document.getElementById('epTitle').innerText = json.episode;
             document.getElementById('headerTitle').innerText = json.episode;
             
-            // Play Default
+            // Server Grouping (Mocking Donghua servers as "HD")
             const servers = json.streaming.servers || [];
+            const grouped = { "HD SERVER": [] };
+            
+            servers.forEach(s => {
+                grouped["HD SERVER"].push({ name: s.name, url: s.url });
+            });
+
+            // Default Play
             let defaultSrv = servers.find(s => s.name.toLowerCase().includes('premium')) || servers[0];
             if (defaultSrv) playVideo(defaultSrv.url, defaultSrv.name);
 
-            // Render Server List Donghua
-            renderDonghuaServers(servers);
+            renderGroupedServers(grouped);
 
-            // Navigation
+            // Nav
             const nav = json.navigation;
             const prev = document.getElementById('btnPrev');
             const next = document.getElementById('btnNext');
@@ -524,39 +522,52 @@
         }
     }
 
-    function renderDonghuaServers(servers) {
+    // ===================================
+    // RENDERERS
+    // ===================================
+    function renderGroupedServers(groupedData) {
         const container = document.getElementById('serverListContainer');
         container.innerHTML = "";
-        
-        const group = document.createElement('div');
-        group.className = "srv-group";
-        group.innerHTML = `<div class="srv-group-title">AVAILABLE SERVERS</div>`;
-        
-        const list = document.createElement('div');
-        list.className = "srv-list-modern";
 
-        servers.forEach(srv => {
-            const btn = document.createElement('div');
-            btn.className = "btn-srv-modern";
-            btn.innerHTML = `<span>${srv.name}</span> <i data-lucide="play-circle" width="16"></i>`;
+        if(Object.keys(groupedData).length === 0) {
+            container.innerHTML = "<p style='text-align:center;color:#666'>Tidak ada server.</p>";
+            return;
+        }
+
+        // Loop setiap Resolusi
+        for (const [res, list] of Object.entries(groupedData)) {
+            if(list.length === 0) continue;
+
+            const group = document.createElement('div');
+            group.className = "srv-group";
+            group.innerHTML = `<div class="srv-group-title">${res.toUpperCase()}</div>`;
             
-            btn.onclick = () => {
-                playVideo(srv.url, srv.name);
-                closeServerModal(null);
-                document.querySelectorAll('.btn-srv-modern').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            };
-            list.appendChild(btn);
-        });
+            const listDiv = document.createElement('div');
+            listDiv.className = "srv-list-modern";
 
-        group.appendChild(list);
-        container.appendChild(group);
+            list.forEach(srv => {
+                const btn = document.createElement('div');
+                btn.className = "btn-srv-modern";
+                // Bersihin nama server
+                const clean = srv.name.replace(/\[.*?\]/g, '').trim();
+                btn.innerHTML = `<span>${clean}</span> <i data-lucide="play-circle" width="16"></i>`;
+                
+                btn.onclick = () => {
+                    playVideo(srv.url, `${clean} (${res})`);
+                    closeServerModal(null);
+                    // Reset active
+                    document.querySelectorAll('.btn-srv-modern').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+                listDiv.appendChild(btn);
+            });
+
+            group.appendChild(listDiv);
+            container.appendChild(group);
+        }
         lucide.createIcons();
     }
 
-    // ===================================
-    // SHARED FUNCTIONS
-    // ===================================
     function playVideo(url, name) {
         const iframe = document.getElementById('iframePlayer');
         iframe.src = 'about:blank';
@@ -566,17 +577,14 @@
         showToast("Memutar: " + name);
     }
 
-    // Modal Logic
-    function openServerModal() {
-        document.getElementById('serverModal').classList.add('active');
+    // Modal
+    function openServerModal() { document.getElementById('serverModal').classList.add('active'); }
+    function closeServerModal(e) { 
+        if(e && e.target !== e.currentTarget) return; 
+        document.getElementById('serverModal').classList.remove('active'); 
     }
 
-    function closeServerModal(e) {
-        if(e && e.target !== e.currentTarget) return; // Klik inside modal dont close
-        document.getElementById('serverModal').classList.remove('active');
-    }
-
-    // Downloads Anime
+    // Downloads
     function renderAnimeDownloads(data) {
         const box = document.getElementById('dlContainer');
         if (!data || !data.formats) return;
@@ -595,7 +603,6 @@
         box.innerHTML = html;
     }
 
-    // Downloads Donghua
     function renderDonghuaDownloads(urls) {
         const box = document.getElementById('dlContainer');
         let html = "";
@@ -635,7 +642,6 @@
         hist.unshift({ title, url, source: src, date: new Date().toLocaleDateString() });
         localStorage.setItem('my_history', JSON.stringify(hist.slice(0, 20)));
     }
-
 </script>
 </body>
 </html>
